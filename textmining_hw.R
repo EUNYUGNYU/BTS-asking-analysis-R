@@ -1,0 +1,130 @@
+library(tidyverse)
+
+#R의 mpg 데이터를 이용하여 pipe 연산자와 tidyR 방식을 이용하여 다음을 구하시오
+data(mpg)
+glimpse(mpg)
+head(mpg)
+
+##1. hwy가 10 이상인 것들만 추려내시오
+summary(mpg$hwy)
+mpg %>% 
+  filter(hwy>=10)
+
+##2. year가 2000년 이후인 것만 추려내시오
+summary(mpg$year)
+mpg %>% 
+  filter(year>=2000)
+
+##3. cty가 10 미만이고, year가 2000년 미만인 것들만 추려내시오. (&를 활용할 것)
+mpg %>% 
+  filter(cty<10 & year<2000)
+
+##4. displ이 1.8인 경우만 추려내시오.
+mpg %>% 
+  filter(displ %in% 1.8)
+
+##5. displ이 2.0이고 cyl이 6, 8인 경우만 추려내시오.
+mpg %>% 
+  filter(displ %in% 2.0 & cyl %in% c(6,8))
+
+## 6. mpg 데이터의 year에 따른 hwy, cty의 평균을 구하고, cty_mean 기준으로 내림차순 정렬하시오.
+mpg %>% 
+  group_by(year) %>% 
+  summarise(hwy_mean = mean(hwy), cty_mean = mean(cty)) %>% 
+  arrange(desc(cty_mean))
+
+##7. mpg 데이터의 class에 따른 cty, hwy의 합을 구하고, hwy_sum 기준으로 오름차순 정렬하시오.
+mpg %>% 
+  group_by(class) %>% 
+  summarise(hwy_sum = sum(hwy), cty_sum = sum(cty)) %>% 
+  arrange(hwy_sum)
+
+
+#과제 2
+#비행기 데이터 (nycflights13)를 이용하여 pipe 연산자를 이용하여 다음을 구하시오
+
+library(nycflights13)
+data(flights)
+glimpse(flights)
+str(flights)
+
+##1. 비행 달이 7, 8, 9월인 행만 추려내시오.
+flights %>% 
+  filter(month >=7 & month<=9)
+
+##2. 목적지(dest)가 "IAH" 이거나 "HOU"인 행만 추려내시오.
+flights %>% 
+  filter(dest %in% c("IAH","HOU"))
+
+##3. 도착지연 시간(arr_delay)이 60분 이고, 출발지연 시간(dep_delay)이 0분인 행만 추려내시오.
+flights %>% 
+  filter(arr_delay %in% 60 & dep_delay %in% 0)
+
+## 4. year, month, day 열만 추려내시오.
+flights %>% 
+  dplyr::select(year, month, day)
+
+## 5. dep_time부터 arr_delay열까지 한꺼번에 추려내시오.
+flights %>% 
+  dplyr::select(dep_time:arr_delay)
+
+
+## 6. year, month, day 에 따른 dep_delay의 평균을 구하시오. (결측치도 처리할 것)
+flights %>% 
+  filter(!is.na(dep_delay)) %>% 
+  group_by(year, month, day) %>% 
+  summarise(delay_mean = mean(dep_delay))
+
+##7. 목적지(dest)에 따른 dep_delay의 평균을 구해 내림차 순으로 정리하시오
+###결측치 미처리
+flights %>% 
+  group_by(dest) %>% 
+  summarise(delay_mean = mean(dep_delay)) %>% 
+  arrange(desc(delay_mean))
+###결측치 처리
+flights %>% 
+  filter(!is.na(dep_delay)) %>%   
+  group_by(dest) %>% 
+  summarise(delay_mean = mean(dep_delay)) %>% 
+  arrange(desc(delay_mean))
+
+#과제3
+
+## 1. 데이터는 bts_text <- readLines("bts_text.txt", encoding = "UTF-8")로 읽어 들이시오
+getwd()
+bts_text<-readLines("bts_text.txt", encoding = "UTF-8")
+bts_text
+
+##2. stringr 패키지의 str_squish()를 이용하여 계속된 공백을 제거한 문서를 bts_text1으로 저장하시오 .
+bts_text1<-bts_text %>% str_squish()
+bts_text1
+
+## 3. str_extract_all ()를 이용하여 bts_text1에서 “the”가 몇 번 나오는지 조사하시오.
+str_extract_all(bts_text1, pattern="the")
+
+## 4. str_replace_all(bts_text1, "[[:digit:]]+", "") 를 이용하여 모든 숫자를 제거하시오.
+bts_text1<-str_replace_all(bts_text1, "[[:digit:]]+", "")
+bts_text1
+
+## 5. 모든 숫자를 제거한 후 str_replace_all(bts_text1, "[[:punct:]]", "")을 이용하여 모든 구두점 문자를
+제거하시오.
+bts_text1<-str_replace_all(bts_text1, "[[:punct:]]", "")
+bts_text1
+
+##6. stringr 패키지의 str_squish()를 이용하여 이후 생긴 계속된 공백을 제거하시오.
+bts_text1 <- bts_text1 %>% str_squish()
+bts_text1
+
+##7. bts_text1 를 4, 5, 6을 진행 한 후 str_split()를 이용하여 공백으로 분리하여 bts_text_token1으로 저
+장하시오.
+## 참고: str_split()는 리스트를 제공한다. 벡터로 바꾸기를 원한다면 unlist()를 이용하면 됨
+bts_text_token1<-strsplit(bts_text1, " ")
+bts_text_token1
+
+##8. 각 단어 출현 빈도 수 세서, 내림차순으로 정렬하고 bts_tidy_word_freq로 저장하시오.
+bts_tidy_word_freq <- sort(table(bts_text_token1), decreasing = TRUE)
+bts_tidy_word_freq
+
+## 9. bts_tidy_word_freq 중 상위 50개를 프린트 하시오.
+head(bts_tidy_word_freq, n=50)
+
